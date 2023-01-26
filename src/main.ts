@@ -33,7 +33,7 @@ export class Controller {
 
 export class CarQuestionnaireRepository {
     save(entity: CarQuestionnaireEntity): void {
-        // [SI] Imagine that here we are storing the data to a Postgres database
+        // [SI] Imagine that here we are storing the data to a MySQL database
         console.log('Save questionnaire of: ' + entity.user.name);
 
         MySqlAccessService.saveToTable('Questionnaires', {
@@ -64,7 +64,7 @@ class ExternalLogger {
 
 class MySqlAccessService {
     static saveToTable(tableName: string, data: object ) {
-        // [SI] Imagine that here we are storing the data in a Postgres database
+        // [SI] Imagine that here we are storing the data in a MySQL database
         console.log('DB: saving to table ' + tableName);
         console.log(data);
         console.log('\n');
