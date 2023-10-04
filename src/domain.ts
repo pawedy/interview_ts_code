@@ -1,4 +1,8 @@
-import {CarQuestionnaireRepository} from "./main";
+import { ENGINE_COMMENTS } from './constants';
+import {
+    CarQuestionnaireRepository,
+    WorkshopCarQuestionnaireRepository,
+} from './main';
 
 abstract class Entity {
     id: string;
@@ -6,13 +10,6 @@ abstract class Entity {
     protected constructor(id: string) {
         this.id = id;
     }
-
-    static loggingConstructor(...params: any): Entity {
-        console.log('New entity created with params:');
-        console.log(params);
-
-        return self.constructor(...params);
-    };
 }
 
 export class UserEntity extends Entity {
@@ -24,9 +21,15 @@ export class UserEntity extends Entity {
         this.name = name;
         this.age = age;
     }
+}
 
-    // I don't need this here
-    static loggingConstructor(..._: any[]): any { return; }
+export class WorkshopEntity extends Entity {
+    name: string;
+
+    constructor(id: string, name: string) {
+        super(id);
+        this.name = name;
+    }
 }
 
 export class AnswersEntity extends Entity {
@@ -38,9 +41,14 @@ export class AnswersEntity extends Entity {
         this.car = car;
         this.engine = engine;
     }
+}
 
-    // I don't need this here
-    static loggingConstructor(..._: any[]): any { return; }
+export class WorkshopAnswersEntity extends AnswersEntity {
+    reason: string;
+    constructor(id: string, car: string, engine: number, reason: string) {
+        super(id, car, engine);
+        this.reason = reason;
+    }
 }
 
 export class CarQuestionnaireEntity extends Entity {
@@ -52,9 +60,21 @@ export class CarQuestionnaireEntity extends Entity {
         this.user = user;
         this.questions = questions;
     }
+}
 
-    // I don't need this here
-    static loggingConstructor(..._: any[]): any { return; }
+export class WorkshopCarQuestionnaireEntity extends Entity {
+    workshop: WorkshopEntity;
+    questions: AnswersEntity;
+
+    constructor(
+        id: string,
+        workshop: WorkshopEntity,
+        questions: AnswersEntity
+    ) {
+        super(id);
+        this.workshop = workshop;
+        this.questions = questions;
+    }
 }
 
 export class CarQuestionnaireHandler {
@@ -64,34 +84,34 @@ export class CarQuestionnaireHandler {
         this.repository = repository;
     }
 
-    submit(questionnaire: CarQuestionnaireEntity) : CarQuestionnaireResponse {
-        this.repository.save(questionnaire)
-        return this.analyzeAnswers(questionnaire.questions)
+    submit(questionnaire: CarQuestionnaireEntity): CarQuestionnaireResponse {
+        this.repository.save(questionnaire);
+        return this.analyzeAnswers(questionnaire.questions);
     }
 
     private analyzeAnswers(answers: AnswersEntity): CarQuestionnaireResponse {
-        let engineComment = answers.engine.toString()
+        const carComment = `${answers.car} is an amazing car!`;
+        const engineComment = this.generateEngineComment(answers.engine);
 
-        // Many more engine types to come soon!!!
-        switch(answers.engine) {
-            case 1.0: {
-                engineComment = engineComment + ' engine is so efficient!'
-                break;
-            }
-            case 2.0: {
-                engineComment = engineComment + ' engine is so powerful!'
-                break;
-            }
-            default: {
-                engineComment = engineComment + ' engine is so... average...';
-                break;
-            }
-        }
+        return new CarQuestionnaireResponse(carComment, engineComment);
+    }
 
-        return new CarQuestionnaireResponse(
-            answers.car + ' is an amazing car!',
-            engineComment
-        )
+    private generateEngineComment(engine: number): string {
+        const defaultComment = 'engine is so... average...';
+
+        return `${engine} ${ENGINE_COMMENTS[engine] ?? defaultComment}`;
+    }
+}
+
+export class WorkshopCarQuestionnaireHandler {
+    private repository: WorkshopCarQuestionnaireRepository;
+
+    constructor(repository: WorkshopCarQuestionnaireRepository) {
+        this.repository = repository;
+    }
+
+    submit(questionnaire: WorkshopCarQuestionnaireEntity): void {
+        this.repository.save(questionnaire);
     }
 }
 
